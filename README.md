@@ -7,10 +7,10 @@ Requirements
 
 This needs the following python libraries
 
-    * musicbrainzngs
-    * python-discid
-    * winshell
-    * py2exe
+   * musicbrainzngs
+   * python-discid
+   * winshell
+   * py2exe
     
 Creating the installer needs InnoSetup. python-discid needs a copy of the libdiscid dll (discid.dll) which is included with the source.
 
@@ -29,14 +29,14 @@ Using the setup utility will automatically create the shortcuts in windows explo
 Using This Tool
 ======================
 
-    1. Right click on a CD drive and choose "Add To KLAP"
-    1. A window will open and report any problems. If there are no problems, it will close immediately.
-    1. KLAP will open in your default browser and allow you to create the entry.
+   1. Right click on a CD drive and choose "Add To KLAP"
+   1. A window will open and report any problems. If there are no problems, it will close immediately.
+   1. KLAP will open in your default browser and allow you to create the entry.
    
 Limitations
 =======================
 
-    * For CDs with a limited number of tracks, or releases that suck, this tool may show incorrect information or won't find any at all.
+   * For CDs with a limited number of tracks, or releases that suck, this tool may show incorrect information or won't find any at all.
     
 Acknowledgements
 =======================
@@ -49,7 +49,7 @@ Changelog
 v0.1 - Initial Release
 
 v0.2
-    * Added support for extracting data from CD-TEXT and queries on the FreeDB CDDB.
-    * Added support for zlib compressing url to allow a greater amount of track data to be sent before the upper limit on url length is met.
-    * Fixed handling of CD Stubs for musicbrainz results.
-    * Fixed handling CD matches with no releases
+   * Added support for extracting data from CD-TEXT and queries on the FreeDB CDDB.
+   * Added support for zlib compressing url to allow a greater amount of track data to be sent before the upper limit on url length is met.
+   * Fixed handling of CD Stubs for musicbrainz results.
+   * Fixed handling CD matches with no releases
