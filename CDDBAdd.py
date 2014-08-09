@@ -16,6 +16,9 @@ import exceptions
 
 import discid
 import musicbrainzngs
+import zlib
+import cdrdao
+import CDDB
 
 DEBUG = False
 KLAP_URL = "http://klap.kmnr.org/lib/json/"
@@ -68,7 +71,7 @@ def wait_and_exit(msg,code=1):
     raw_input("Press ENTER to continue")
     sys.exit(code)
             
-def main():
+def musicbrainz_lookup():
     """
     Scans a folder for music files with metadata. Collects metadata information
     from all music files and assumes they belong to the same album. Produces a
@@ -88,38 +91,86 @@ def main():
         result = musicbrainzngs.get_releases_by_discid(disc.id,
                                                        includes=["artists","recordings"])
     except musicbrainzngs.ResponseError:
-        wait_and_exit("Couldn't find that disc in the online database, sorry!")
+        print "Couldn't find that disc in the online database, sorry!"
+        return None
     else:
+        print "Found disc {}".format(disc.id)
+        subd = None
         if result.get("disc"):
+            if len(result['disc']['release-list']) == 0:
+                print "Found the disc id, but it didn't have any releases..."
+                return None
             artist = result["disc"]["release-list"][0]["artist-credit-phrase"]
             album = result["disc"]["release-list"][0]["title"]
-            dk = "disc"
+            subd = result["disc"]['release-list'][0]['medium-list'][0]
+            for track in subd['track-list']:
+                title = track['recording']['title']    
+                d = {'number': int(track['position']),
+                     'title': title}
+                tracks.append(d)
         elif result.get("cdstub"):
             artist = result["cdstub"]["artist"]
             album = result["cdstub"]["title"]
-            dk = "cdstub"
-        for track in result[dk]['release-list'][0]['medium-list'][0]['track-list']:
-            title = track['recording']['title']    
-            d = {'number': int(track['position']),
-                 'title': title}
-            tracks.append(d)
+            subd = result["cdstub"]
+            c = 1
+            for track in subd['track-list']:
+                title = track['title']    
+                d = {'number': c,
+                     'title': title}
+                tracks.append(d)
+                c += 1
     
     # Make sure the info is safe for KLAP
     artist = artist
     album = album
-    
-    print "\n-----------------------------\n"
     
     # Make the dict
     obj = {'artist': artist,
            'album': album,
            'tracks': tracks,
           }
+    return obj
 
+def CDDB_lookup():
+    devices = cdrdao.scan_devices()
+    discid = cdrdao.get_discid(devices[0][0])
+    
+    (query_status, query_info) = CDDB.query(discid)
+    if query_status != 200:
+        print "Couldn't find match on the freedb"
+        return None
+    
+    (read_status, read_info) = CDDB.read(query_info['category'], query_info['disc_id'])
+    
+    tracks = []
+    for i in range(int(discid[1])):
+        tracks.append({'number':i+1, 'title': read_info["TTITLE{}".format(i)]})
+    
+    artist, album = read_info['DTITLE'].split('/',1)
+    artist = artist.strip()
+    album = album.strip()
+    
+    obj = {'artist': artist, 'album': album, 'tracks':tracks}
+    return obj
+    
+def cdtext_lookup():
+    # It's hard to figure out the drive letter, just assume you're using the first one
+    # TODO Fix me
+    print "Checking to see if the disc has CD-Text"
+    devices = cdrdao.scan_devices()
+    data = cdrdao.read_toc(devices[0][0])
+    try:
+        return cdrdao.toc_to_KLAP(data)
+    except KeyError:
+        print "Disc does NOT have CD-TEXT"
+        return None
+    
+def open_klap(obj):
     # Code it as json
     js = json.dumps(obj)
+    jsz = zlib.compress(js,9)
     # Make a query string dict
-    dic = {'data':js}
+    dic = {'data':jsz,'z':1}
     # Encode it as a query string
     qs = urlencode(dic)
     # Determine target url
@@ -129,7 +180,20 @@ def main():
 
 if __name__ == "__main__":
     try:
-        main()
+        print "Attempt 1: Music Brainz"
+        data = musicbrainz_lookup()
+        
+        if data == None:
+            print "Attempt 2: CD-Text Data"
+            data = cdtext_lookup()
+            
+        if data == None:
+            print "Attempt 3: CDDB Lookup"
+            data = CDDB_lookup()
+        
+        if data == None:
+            wait_and_exit("Couldn't find any track info, Giving up!")
+        open_klap(data)
     except exceptions.SystemExit:
         raise
     except:

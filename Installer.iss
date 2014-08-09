@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "KLAP Add Shortcut (CD)"
-#define MyAppVersion "0.1"
+#define MyAppVersion "0.2"
 #define MyAppPublisher "KMNR (Stephen Jackson)"
 #define MyAppURL "klap.kmnr.org"
 #define MyAppExeName "CDDBAdd.exe"
@@ -35,6 +35,7 @@ Source: "dist\_hashlib.pyd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\_socket.pyd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\_ssl.pyd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\_ctypes.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\_win32sysloader.pyd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\pyexpat.pyd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\bz2.pyd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\library.zip"; DestDir: "{app}"; Flags: ignoreversion
@@ -42,7 +43,15 @@ Source: "dist\python27.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\select.pyd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\unicodedata.pyd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\w9xpopen.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\pyexpat.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\pythoncom27.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\pywintypes27.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\win32api.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\win32clipboard.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\win32com.shell.shell.pyd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "discid.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "cdrdao.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "cygwin1.dll"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
