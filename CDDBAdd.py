@@ -22,6 +22,7 @@ import CDDB
 
 DEBUG = False
 KLAP_URL = "http://klap.kmnr.org/lib/json/"
+KLAP_MB_URL = "http://klap.kmnr.org/lib/mb/albumlookup/{}/"
 
 def normalize(itm):
     """
@@ -84,12 +85,12 @@ def musicbrainz_lookup():
         sys.exit(1)
 
     tracks = []
-    musicbrainzngs.set_useragent("KLAP-CDDBAdd", "0.1", "engineering@kmnr.org")
+    musicbrainzngs.set_useragent("KLAP-CDDBAdd", "0.3", "engineering@kmnr.org")
 
     disc = discid.read(sys.argv[1])
     try:
         result = musicbrainzngs.get_releases_by_discid(disc.id,
-                                                       includes=["artists","recordings"])
+                                                       includes=["artists","recordings","release-groups"])
     except musicbrainzngs.ResponseError:
         print "Couldn't find that disc in the online database, sorry!"
         return None
@@ -100,23 +101,21 @@ def musicbrainz_lookup():
             if len(result['disc']['release-list']) == 0:
                 print "Found the disc id, but it didn't have any releases..."
                 return None
-            artist = result["disc"]["release-list"][0]["artist-credit-phrase"]
-            album = result["disc"]["release-list"][0]["title"]
-            subd = result["disc"]['release-list'][0]['medium-list'][0]
-            for track in subd['track-list']:
-                title = track['recording']['title']    
-                d = {'number': int(track['position']),
-                     'title': title}
-                tracks.append(d)
+            print "Found a musicbrainz release id"
+            open_url(KLAP_MB_URL.format(result['disc']['release-list'][0]['id']))
+            exit()
         elif result.get("cdstub"):
-            artist = result["cdstub"]["artist"]
-            album = result["cdstub"]["title"]
+            artist = normalize(result["cdstub"]["artist"])
+            album = normalize(result["cdstub"]["title"])
             subd = result["cdstub"]
             c = 1
             for track in subd['track-list']:
-                title = track['title']    
+                title = normalize(track['title'])
+                tartist = normalize(track['artist'])
                 d = {'number': c,
                      'title': title}
+                if tartist != artist:
+                    d['artist'] = tartist
                 tracks.append(d)
                 c += 1
     
@@ -144,11 +143,11 @@ def CDDB_lookup():
     
     tracks = []
     for i in range(int(discid[1])):
-        tracks.append({'number':i+1, 'title': read_info["TTITLE{}".format(i)]})
+        tracks.append({'number':i+1, 'title': normalize(read_info["TTITLE{}".format(i)])})
     
     artist, album = read_info['DTITLE'].split('/',1)
-    artist = artist.strip()
-    album = album.strip()
+    artist = normalize(artist.strip())
+    album = normalize(album.strip())
     
     obj = {'artist': artist, 'album': album, 'tracks':tracks}
     return obj
@@ -176,8 +175,11 @@ def open_klap(obj):
     # Determine target url
     final_url = "{}?{}".format(KLAP_URL,qs)
     # Open up KLAP!
-    webbrowser.open_new_tab(final_url)
+    open_url(final_url)
 
+def open_url(url):
+    webbrowser.open_new_tab(url)
+    
 if __name__ == "__main__":
     try:
         print "Attempt 1: Music Brainz"

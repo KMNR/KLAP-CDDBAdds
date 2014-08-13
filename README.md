@@ -53,3 +53,8 @@ v0.2
    * Added support for zlib compressing url to allow a greater amount of track data to be sent before the upper limit on url length is met.
    * Fixed handling of CD Stubs for musicbrainz results.
    * Fixed handling CD matches with no releases
+   
+v0.3
+   * Change Musicbrainz match to just load id in KLAP which is more direct and more DRY and avoids the character limit for some releases.
+   * Normalizes more strings to get past unicode problems.
+   

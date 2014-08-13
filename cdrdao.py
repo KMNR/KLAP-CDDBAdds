@@ -112,8 +112,8 @@ def toc_to_KLAP(toc_data):
         subd = {'number': track['NUMBER']}
         subd['title'] = track['CD_TEXT'][language]['TITLE']
         performer = track['CD_TEXT'][language]['PERFORMER']
-        #if performer != artist:
-        #    subd['performer'] = performer
+        if performer != artist:
+            subd['performer'] = performer
         tracks.append(subd)
     
     return {'artist': artist, 'album':album, 'tracks':tracks}
