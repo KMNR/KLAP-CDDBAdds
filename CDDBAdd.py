@@ -29,8 +29,19 @@ def normalize(itm):
     This function removes all the funny characters and downcodes them to an
     ascii equivalent.
     """
-    return unicodedata.normalize('NFKD', itm).encode('ascii', 'ignore')
-
+    try:
+        return unicodedata.normalize('NFKD', itm).encode('ascii', 'ignore')
+    except TypeError:
+        return itm
+        
+def cddb_normalize(itm):
+    """
+    CDDB returns results as iso-8859-1 which we need to convert to utf-8 then
+    normalize
+    """
+    recode = itm.decode('iso-8859-1').encode('utf8')
+    return normalize(recode)
+        
 def normalize_list(lst):
     """
     Calls normalize on a list of strings.
@@ -103,7 +114,7 @@ def musicbrainz_lookup():
                 return None
             print "Found a musicbrainz release id"
             open_url(KLAP_MB_URL.format(result['disc']['release-list'][0]['id']))
-            exit()
+            sys.exit()
         elif result.get("cdstub"):
             artist = normalize(result["cdstub"]["artist"])
             album = normalize(result["cdstub"]["title"])
@@ -131,6 +142,9 @@ def musicbrainz_lookup():
     return obj
 
 def CDDB_lookup():
+    """
+    Queries the CDDB for the album
+    """
     devices = cdrdao.scan_devices()
     discid = cdrdao.get_discid(devices[0][0])
     
@@ -143,11 +157,11 @@ def CDDB_lookup():
     
     tracks = []
     for i in range(int(discid[1])):
-        tracks.append({'number':i+1, 'title': normalize(read_info["TTITLE{}".format(i)])})
+        tracks.append({'number':i+1, 'title': cddb_normalize(read_info["TTITLE{}".format(i)])})
     
     artist, album = read_info['DTITLE'].split('/',1)
-    artist = normalize(artist.strip())
-    album = normalize(album.strip())
+    artist = cddb_normalize(artist.strip())
+    album = cddb_normalize(album.strip())
     
     obj = {'artist': artist, 'album': album, 'tracks':tracks}
     return obj
